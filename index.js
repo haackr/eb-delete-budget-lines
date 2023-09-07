@@ -1,6 +1,7 @@
 import puppeteer from "puppeteer";
 import Papa from "papaparse";
 import fs from "fs";
+import { PromisePool } from "@supercharge/promise-pool";
 
 const file = fs.createReadStream("./input.csv");
 
@@ -27,13 +28,14 @@ const environment = eb.Environments.US1;
 })();
 
 async function deleteLines(budgetLines) {
-  const browser = await puppeteer.launch({ headless: false });
+  const browser = await puppeteer.launch({ headless: "new" });
 
   const page = await browser.newPage();
 
   const options = { environment, page, browser };
 
   await eb.login({ ...users.test1, ...options });
+  console.log("logged in");
 
   // const budgetLine = {
   //   portalId: "69e94efa-9e63-4a87-a281-fc28c1a54e39",
@@ -41,9 +43,23 @@ async function deleteLines(budgetLines) {
   //   budgetId: "ff83414a-a8f7-4e20-bf8f-a2dbc9abcf9a",
   // };
 
-  for (let i = 0; i < budgetLines.length; i++) {
-    await eb.deleteBudgetItem({ ...options, ...budgetLines[i] });
-  }
+  // const budgetPromise = [];
+
+  // for (let i = 0; i < budgetLines.length; i++) {
+  //   budgetPromise.push(eb.deleteBudgetItem({ ...options, ...budgetLines[i] }));
+  // }
+
+  console.log("-----begin deleting lines-----");
+
+  const { results, errors } = await PromisePool.for(budgetLines)
+    .withConcurrency(5)
+    .process(async (line) => {
+      await eb.deleteBudgetItem({ ...options, ...line });
+      console.log(`${line.itemId} deleted`);
+    });
+
+  console.log("-----lines deleted-----");
 
   await eb.logout({ ...options });
+  console.log("logged out");
 }
