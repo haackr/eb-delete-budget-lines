@@ -10,7 +10,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@supercharge/promise-pool": "^3.0.0",
     "papaparse": "^5.4.1",
     "puppeteer": "^21.1.1"
   },

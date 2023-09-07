@@ -28,7 +28,7 @@ const environment = eb.Environments.US1;
 })();
 
 async function deleteLines(budgetLines) {
-  const browser = await puppeteer.launch({ headless: "new" });
+  const browser = await puppeteer.launch({ headless: false });
 
   const page = await browser.newPage();
 
@@ -45,20 +45,20 @@ async function deleteLines(budgetLines) {
 
   // const budgetPromise = [];
 
-  // for (let i = 0; i < budgetLines.length; i++) {
-  //   budgetPromise.push(eb.deleteBudgetItem({ ...options, ...budgetLines[i] }));
-  // }
-
   console.log("-----begin deleting lines-----");
-
-  const { results, errors } = await PromisePool.for(budgetLines)
-    .withConcurrency(5)
-    .process(async (line) => {
-      await eb.deleteBudgetItem({ ...options, ...line });
-      console.log(`${line.itemId} deleted`);
-    });
-
+  for (let i = 0; i < budgetLines.length; i++) {
+    await eb.deleteBudgetItem({ ...options, ...budgetLines[i] });
+    console.log(budgetLines[i].itemId);
+  }
   console.log("-----lines deleted-----");
+
+  // page.click() requires a tab to have focus so this doesn't really work
+  // const { results, errors } = await PromisePool.for(budgetLines)
+  //   .withConcurrency(5)
+  //   .process(async (line) => {
+  //     await eb.deleteBudgetItem({ ...options, ...line });
+  //     console.log(`${line.itemId} deleted`);
+  //   });
 
   await eb.logout({ ...options });
   console.log("logged out");
