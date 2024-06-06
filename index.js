@@ -12,7 +12,11 @@ import eb from "./lib/ebutil.js";
 
 import users from "./.users.json" assert { "type": "json" };
 
-const environment = eb.Environments.US1;
+const environment = eb.Environments.US3;
+let browser;
+let page;
+let options = {};
+let cookies = {};
 
 (async function main() {
   var budgetLines = [];
@@ -31,32 +35,45 @@ const environment = eb.Environments.US1;
 })();
 
 async function deleteLines(budgetLines) {
-  const browser = await puppeteer.launch({ headless: false });
+  browser = await puppeteer.launch({ headless: "new" });
 
-  const page = await browser.newPage();
-  const options = { environment, page, browser };
-  const cookies = await eb.login({ ...users.test1, ...options });
-  options.cookies = cookies;
+  page = await browser.newPage();
+  options = { environment, page, browser };
+
+  if(fs.existsSync("./sessionCookies")) {
+    cookies = JSON.parse(fs.readFileSync("./sessionCookies"));
+    options.cookies = cookies;
+    await page.setCookie(...cookies);
+    console.log("-----trying existing session-----");
+    if(! await eb.isLoggedIn(options)) {
+      await login();
+    }
+  } else {
+    await login();
+  }
 
   console.log("logged in");
   const start = performance.now();
   console.log("-----begin deleting lines-----");
 
   await PromisePool.for(budgetLines)
-    .withConcurrency(5)
+    .withConcurrency(2)
     .process(async (line) => {
       await eb.deleteBudgetItem({ ...line, ...options });
-      console.log(line.itemId);
+      // console.log(`${item.itemId} - ${item.projectName} - ${item.accountCode}`);
     });
 
-  // for (let i = 0; i < budgetLines.length; i++) {
-  //   await eb.deleteBudgetItem({ ...options, ...budgetLines[i] });
-  //   console.log(budgetLines[i].itemId);
-  // }
   console.log("-----lines deleted-----");
   console.log((performance.now() - start) / 1000);
 
   await eb.logout({ ...options });
   console.log("logged out");
   browser.close();
+}
+
+async function login() {
+  cookies = await eb.login({ ...users.DataMigrationPROD, ...options });
+  fs.writeFileSync("./sessionCookies",JSON.stringify(cookies));
+  // console.log(cookies);
+  options.cookies = cookies;
 }
