@@ -40,12 +40,12 @@ async function deleteLines(budgetLines) {
   page = await browser.newPage();
   options = { environment, page, browser };
 
-  if(fs.existsSync("./sessionCookies")) {
+  if (fs.existsSync("./sessionCookies")) {
     cookies = JSON.parse(fs.readFileSync("./sessionCookies"));
     options.cookies = cookies;
     await page.setCookie(...cookies);
     console.log("-----trying existing session-----");
-    if(! await eb.isLoggedIn(options)) {
+    if (!(await eb.isLoggedIn(options))) {
       await login();
     }
   } else {
@@ -57,10 +57,11 @@ async function deleteLines(budgetLines) {
   console.log("-----begin deleting lines-----");
 
   await PromisePool.for(budgetLines)
-    .withConcurrency(2)
+    .withConcurrency(5)
     .process(async (line) => {
-      await eb.deleteBudgetItem({ ...line, ...options });
+      const newCookies = await eb.deleteBudgetItem({ ...line, ...options });
       // console.log(`${item.itemId} - ${item.projectName} - ${item.accountCode}`);
+      options.cookies = newCookies;
     });
 
   console.log("-----lines deleted-----");
@@ -73,7 +74,7 @@ async function deleteLines(budgetLines) {
 
 async function login() {
   cookies = await eb.login({ ...users.DataMigrationPROD, ...options });
-  fs.writeFileSync("./sessionCookies",JSON.stringify(cookies));
+  fs.writeFileSync("./sessionCookies", JSON.stringify(cookies));
   // console.log(cookies);
   options.cookies = cookies;
 }
