@@ -12,7 +12,9 @@
   "dependencies": {
     "@supercharge/promise-pool": "^3.0.0",
     "papaparse": "^5.4.1",
-    "puppeteer": "^21.1.1"
+    "playwright": "^1.44.1",
+    "puppeteer": "^22.11.0",
+    "puppeteer-cluster": "^0.24.0"
   },
   "type": "module"
 }
