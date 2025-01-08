@@ -10,7 +10,7 @@ const file = fs.createReadStream("./input.csv");
 
 import eb from "./lib/ebutil.js";
 
-import users from "./.users.json" with { "type": "json" };
+import users from "./.users.json" assert { "type": "json" };
 
 const environment = eb.Environments.US3;
 let browser;
