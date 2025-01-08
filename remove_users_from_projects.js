@@ -18,7 +18,7 @@ let options = {};
 let cookies = {};
 
 (async function main() {
-  browser = await puppeteer.launch({ headless: false });
+  browser = await puppeteer.launch({ headless: "shell" });
 
   page = await browser.newPage();
   options = { environment, page, browser };
@@ -37,7 +37,7 @@ let cookies = {};
 
   console.log("logged in");
   console.log(`---- BEGIN REMOVING USERS FROM PROJECTS -----`);
-  removeUsersFromProjects(ALL_USERS, ALL_PROJECTS);
+  await removeUsersFromProjects(ALL_USERS, ALL_PROJECTS);
   console.log("----- REMOVAL COMPLETE -----");
 
 })();
