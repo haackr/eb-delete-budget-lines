@@ -39,6 +39,7 @@ let cookies = {};
   console.log(`---- BEGIN REMOVING USERS FROM PROJECTS -----`);
   await removeUsersFromProjects(ALL_USERS, ALL_PROJECTS);
   console.log("----- REMOVAL COMPLETE -----");
+  browser.close();
 
 })();
 
